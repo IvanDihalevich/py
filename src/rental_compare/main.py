@@ -5,4 +5,5 @@ app = FastAPI()
 
 # тут підключаєте роутери
 # from .api.routers import platform
+
 # app.include_router(platform.router)
