@@ -1,8 +1,5 @@
-# src/rental_compare/main.py
 from fastapi import FastAPI
+from rental_compare.api.routers import platform
 
-app = FastAPI()
-
-# тут підключаєте роутери
-# from .api.routers import platform
-# app.include_router(platform.router)
+app = FastAPI(title="Rental Compare API")
+app.include_router(platform.router)
