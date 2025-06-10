@@ -34,3 +34,10 @@ class RegressionModelRead(RegressionModelBase):
 
     class Config:
         orm_mode = True
+
+class PredictionRequest(BaseModel):
+    input_values: List[float]
+
+
+class PredictionResponse(BaseModel):
+    prediction: float

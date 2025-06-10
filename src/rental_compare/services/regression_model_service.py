@@ -37,3 +37,16 @@ def delete_regression_model(db: Session, model_id: int) -> bool:
     db.delete(db_model)
     db.commit()
     return True
+def predict_with_model(db: Session, model_id: int, input_values: List[float]) -> float:
+    model = db.query(RegressionModel).filter(RegressionModel.id == model_id).first()
+    if not model:
+        raise ValueError("Model not found")
+
+    coefficients = json.loads(model.coefficients)
+    intercept = model.intercept
+
+    if len(input_values) != len(coefficients):
+        raise ValueError("Input length does not match number of coefficients")
+
+    prediction = intercept + sum(c * x for c, x in zip(coefficients, input_values))
+    return prediction
