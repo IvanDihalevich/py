@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
-
+from datetime import datetime
 from .base import Base
 
 
@@ -41,3 +41,13 @@ class ListingData(Base):
     scraped_at = Column(DateTime, nullable=False)
 
     listing = relationship("Listing", back_populates="data")
+
+class RegressionModel(Base):
+    __tablename__ = "regression_models"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    intercept = Column(Float, nullable=False)
+    coefficients = Column(String, nullable=False)  # JSON stringified list of floats
+    features = Column(String, nullable=False)      # JSON stringified list of strings
+    trained_at = Column(DateTime, default=datetime.utcnow)
