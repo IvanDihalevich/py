@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Float
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Float, JSON, func
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .base import Base
@@ -48,6 +48,15 @@ class RegressionModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     intercept = Column(Float, nullable=False)
-    coefficients = Column(String, nullable=False)  # JSON stringified list of floats
-    features = Column(String, nullable=False)      # JSON stringified list of strings
-    trained_at = Column(DateTime, default=datetime.utcnow)
+    coefficients = Column(JSON, nullable=False)            # список коефіцієнтів
+    feature_descriptions = Column(JSON, nullable=False)    # [{"name": ..., "description": ...}, ...]
+    trained_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class PredictionLog(Base):
+    __tablename__ = "prediction_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    model_id = Column(Integer, nullable=False)
+    input_values = Column(JSON, nullable=False)
+    prediction = Column(Float, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

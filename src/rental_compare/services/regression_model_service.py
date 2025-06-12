@@ -1,34 +1,28 @@
+# src/rental_compare/services/regression_model_service.py
+
 import json
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from rental_compare.db.models import RegressionModel
+from rental_compare.db.models import RegressionModel         # ← Ось цей рядок
 from rental_compare.schemas.regression_model import RegressionModelCreate
-
 
 def create_regression_model(db: Session, model_data: RegressionModelCreate) -> RegressionModel:
     db_model = RegressionModel(
         name=model_data.name,
         intercept=model_data.intercept,
-        coefficients=json.dumps(model_data.coefficients),  # зберігаємо як JSON-рядок
-        features=json.dumps(model_data.features),          # зберігаємо як JSON-рядок
+        coefficients=model_data.coefficients,               # JSON column
+        feature_descriptions=[fd.dict() for fd in model_data.feature_descriptions],
     )
     db.add(db_model)
     db.commit()
     db.refresh(db_model)
     return db_model
 
-
 def get_regression_model(db: Session, model_id: int) -> Optional[RegressionModel]:
-    model = db.query(RegressionModel).filter(RegressionModel.id == model_id).first()
-    # НЕ міняємо model.coefficients і model.features тут
-    return model
-
+    return db.query(RegressionModel).filter(RegressionModel.id == model_id).first()
 
 def get_all_regression_models(db: Session, skip: int = 0, limit: int = 100) -> List[RegressionModel]:
-    models = db.query(RegressionModel).offset(skip).limit(limit).all()
-    # НЕ міняємо поля тут
-    return models
-
+    return db.query(RegressionModel).offset(skip).limit(limit).all()
 
 def delete_regression_model(db: Session, model_id: int) -> bool:
     db_model = db.query(RegressionModel).filter(RegressionModel.id == model_id).first()
@@ -37,16 +31,12 @@ def delete_regression_model(db: Session, model_id: int) -> bool:
     db.delete(db_model)
     db.commit()
     return True
+
 def predict_with_model(db: Session, model_id: int, input_values: List[float]) -> float:
-    model = db.query(RegressionModel).filter(RegressionModel.id == model_id).first()
+    model = get_regression_model(db, model_id)
     if not model:
         raise ValueError("Model not found")
-
-    coefficients = json.loads(model.coefficients)
-    intercept = model.intercept
-
-    if len(input_values) != len(coefficients):
+    coeffs = model.coefficients
+    if len(input_values) != len(coeffs):
         raise ValueError("Input length does not match number of coefficients")
-
-    prediction = intercept + sum(c * x for c, x in zip(coefficients, input_values))
-    return prediction
+    return model.intercept + sum(c * x for c, x in zip(coeffs, input_values))

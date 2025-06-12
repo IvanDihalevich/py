@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from rental_compare.db.models import ListingData
 
 from rental_compare.schemas.listing_data import ListingDataCreate, ListingDataRead, ListingDataUpdate
 from rental_compare.db.models import Listing

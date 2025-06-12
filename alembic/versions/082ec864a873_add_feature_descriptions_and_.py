@@ -1,8 +1,8 @@
-"""Add regression_models table
+"""Add feature_descriptions and coefficients JSON columns to regression_models
 
-Revision ID: d10553f17e76
+Revision ID: 082ec864a873
 Revises: 
-Create Date: 2025-06-10 23:33:49.707746
+Create Date: 2025-06-12 19:35:00.122701
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd10553f17e76'
+revision: str = '082ec864a873'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,13 +29,22 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_platforms_id'), 'platforms', ['id'], unique=False)
     op.create_index(op.f('ix_platforms_name'), 'platforms', ['name'], unique=True)
+    op.create_table('prediction_logs',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('model_id', sa.Integer(), nullable=False),
+    sa.Column('input_values', sa.JSON(), nullable=False),
+    sa.Column('prediction', sa.Float(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_prediction_logs_id'), 'prediction_logs', ['id'], unique=False)
     op.create_table('regression_models',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('intercept', sa.Float(), nullable=False),
-    sa.Column('coefficients', sa.String(), nullable=False),
-    sa.Column('features', sa.String(), nullable=False),
-    sa.Column('trained_at', sa.DateTime(), nullable=True),
+    sa.Column('coefficients', sa.JSON(), nullable=False),
+    sa.Column('feature_descriptions', sa.JSON(), nullable=False),
+    sa.Column('trained_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -79,6 +88,8 @@ def downgrade() -> None:
     op.drop_table('listings')
     op.drop_index(op.f('ix_regression_models_id'), table_name='regression_models')
     op.drop_table('regression_models')
+    op.drop_index(op.f('ix_prediction_logs_id'), table_name='prediction_logs')
+    op.drop_table('prediction_logs')
     op.drop_index(op.f('ix_platforms_name'), table_name='platforms')
     op.drop_index(op.f('ix_platforms_id'), table_name='platforms')
     op.drop_table('platforms')
